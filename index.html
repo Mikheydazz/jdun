@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Погладь ждуна</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            cursor: none; /* Скрываем стандартный курсор */
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #1a472a 0%, #0e2a1a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Comic Neue', cursive, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        /* Контейнер с картинкой, которую нужно гладить */
+        .pet-card {
+            width: 400px;
+            height: 400px;
+            background: #f9e7b3;
+            border-radius: 50px;
+            box-shadow: 0 25px 35px rgba(0,0,0,0.4), inset 0 1px 4px rgba(255,255,200,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.05s linear;
+            cursor: none;
+            position: relative;
+            z-index: 10;
+            border: 5px solid #ffcf9a;
+            overflow: hidden;
+        }
+
+        /* ВАША КАРТИНКА — замените путь на свой файл */
+        .pet-image {
+            width: 85%;
+            height: 85%;
+            object-fit: contain;
+            filter: drop-shadow(2px 8px 12px rgba(0,0,0,0.2));
+            transition: transform 0.1s ease;
+            pointer-events: none; /* чтобы рука ловила клик по всей области карточки */
+        }
+
+        .pet-text {
+            font-size: 24px;
+            font-weight: bold;
+            background: #ffecb3;
+            padding: 8px 20px;
+            border-radius: 40px;
+            margin-top: 12px;
+            color: #b45f1b;
+            box-shadow: inset 0 0 0 2px white, 0 4px 8px rgba(0,0,0,0.1);
+            pointer-events: none;
+        }
+
+        .instruction {
+            margin-top: 35px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 12px 24px;
+            border-radius: 60px;
+            color: #fff3cf;
+            font-size: 1.3rem;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Кастомный курсор — РУКА */
+        .custom-cursor {
+            position: fixed;
+            width: 70px;
+            height: 70px;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.05s linear;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+            will-change: left, top;
+        }
+
+        .hand-default {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="%23FFDDAA" stroke="%238B5A2B" stroke-width="12" d="M256 64c-30 0-55 25-55 55v144c0 13-8 24-19 29-11 5-25 3-34-7l-35-42c-12-15-33-17-48-5s-17 33-5 48l97 116c17 20 42 32 69 32h94c53 0 96-43 96-96V119c0-30-25-55-55-55-30 0-55 25-55 55v72c0 13-11 24-24 24s-24-11-24-24V97c0-30-25-55-55-55s-55 25-55 55v114c0 13-11 24-24 24s-24-11-24-24V119c0-30-25-55-55-55z"/><circle cx="192" cy="128" r="24" fill="%23FFB882"/><circle cx="320" cy="128" r="24" fill="%23FFB882"/></svg>') no-repeat center;
+            background-size: contain;
+            animation: idleHand 1.2s infinite alternate;
+        }
+
+        .hand-petting {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="%23FFD58C" stroke="%237B4512" stroke-width="12" d="M256 58c-30 0-55 25-55 55v152c0 14-9 26-21 31-12 5-27 2-36-9l-30-38c-12-15-33-17-48-5s-17 33-5 48l95 114c17 20 42 32 69 32h94c53 0 96-43 96-96V113c0-30-25-55-55-55s-55 25-55 55v80c0 13-11 24-24 24s-24-11-24-24V91c0-30-25-55-55-55s-55 25-55 55v122c0 13-11 24-24 24s-24-11-24-24V113c0-30-25-55-55-55z"/><path d="M190 184c-18 8-28 28-22 48" stroke="%23D2691E" stroke-width="6" fill="none"/><path d="M322 184c18 8 28 28 22 48" stroke="%23D2691E" stroke-width="6" fill="none"/><text x="200" y="280" font-size="50" fill="%23FF8888" font-weight="bold">❤️</text></svg>') no-repeat center;
+            background-size: contain;
+            animation: petWave 0.2s ease-in-out;
+        }
+
+        @keyframes petWave {
+            0% { transform: scale(0.9) rotate(-5deg);}
+            100% { transform: scale(1.1) rotate(5deg);}
+        }
+
+        @keyframes idleHand {
+            0% { transform: translateY(0px) rotate(0deg);}
+            100% { transform: translateY(5px) rotate(2deg);}
+        }
+
+        /* Эффект при поглаживании картинки */
+        .petting-effect {
+            transform: scale(0.97);
+            filter: brightness(1.05) drop-shadow(0 0 12px gold);
+            transition: 0.03s linear;
+        }
+
+        /* СКРИМЕР (полностью перекрывающий экран) */
+        .scrimer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            cursor: default;
+            animation: flashZoom 0.15s ease-out;
+        }
+
+        /* ВАША КАРТИНКА ДЛЯ СКРИМЕРА — замените путь */
+        .scrimer-img {
+            max-width: 90vw;
+            max-height: 80vh;
+            border-radius: 20px;
+            box-shadow: 0 0 0 8px red, 0 0 0 12px darkred;
+            animation: shake 0.15s infinite;
+        }
+
+        .scrimer-text {
+            font-size: 48px;
+            font-weight: bold;
+            color: red;
+            text-shadow: 0 0 10px black, 0 0 20px white;
+            margin-top: 20px;
+            background: black;
+            padding: 10px 30px;
+            border-radius: 60px;
+            letter-spacing: 4px;
+            font-family: monospace;
+        }
+
+        @keyframes flashZoom {
+            0% { opacity: 0; transform: scale(0.5);}
+            20% { opacity: 1; transform: scale(1.2); background: white; }
+            100% { opacity: 1; transform: scale(1);}
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px);}
+            25% { transform: translate(-2px, 0px);}
+            50% { transform: translate(2px, -2px);}
+            75% { transform: translate(-1px, 1px);}
+            100% { transform: translate(1px, -1px);}
+        }
+
+        .restart-btn {
+            margin-top: 30px;
+            background: #ff8800;
+            border: none;
+            font-size: 28px;
+            font-weight: bold;
+            padding: 12px 32px;
+            border-radius: 60px;
+            color: white;
+            text-shadow: 2px 2px 0 #a34400;
+            box-shadow: 0 5px 0 #a34400;
+            cursor: pointer;
+            transition: 0.07s linear;
+            font-family: inherit;
+        }
+        .restart-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #a34400;
+        }
+
+        @media (max-width: 600px) {
+            .pet-card { width: 280px; height: 280px; }
+            .instruction { font-size: 1rem; }
+            .custom-cursor { width: 55px; height: 55px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="pet-card" id="petCard">
+        <!-- ВАША КАРТИНКА (замените src на путь к вашему файлу) -->
+        <img class="pet-image" id="petImage" src="your_pet_image.png" alt="Погладь меня">
+        <div class="pet-text">🐾 Погладь меня 🐾</div>
+    </div>
+    <!-- <div class="instruction">
+        👆 Проведи рукой (мышкой) по картинке 👆
+    </div> -->
+</div>
+
+<!-- Кастомная рука вместо мыши -->
+<div class="custom-cursor" id="customCursor">
+    <div class="hand-default" id="handIcon"></div>
+</div>
+
+<script>
+    (function(){
+        // ----- ЭЛЕМЕНТЫ -----
+        const petCard = document.getElementById('petCard');
+        const customCursor = document.getElementById('customCursor');
+        const handIcon = document.getElementById('handIcon');
+
+        // ----- ВАШ ЗВУК СКРИМЕРА -----
+        // ЗАМЕНИТЕ ПУТЬ НА ВАШ АУДИОФАЙЛ (mp3, wav, ogg)
+        const screamAudio = new Audio('your_scary_sound.mp3');
+        screamAudio.preload = 'auto';
+        
+        // Дополнительная настройка звука: увеличим громкость и подготовим
+        screamAudio.volume = 0.9;
+        
+        // Флаг, чтобы звук не играл повторно во время скримера
+        let isScrimerActive = false;
+        let scrimerElement = null;
+        
+        // Функция для безопасного воспроизведения звука (с учётом политики браузера)
+        function playScreamSound() {
+            // Останавливаем, если уже играет, чтобы начать заново
+            screamAudio.pause();
+            screamAudio.currentTime = 0;
+            
+            // Пробуем играть (браузер может заблокировать, но по клику/тапу обычно разрешает)
+            const playPromise = screamAudio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.warn("Автовоспроизведение заблокировано, но скример всё равно покажется:", error);
+                    // Пользователь уже взаимодействовал с игрой (двигал мышкой), звук должен сработать.
+                    // Если всё же заблокировано — предложим рестарт с кликом.
+                });
+            }
+        }
+        
+        // ---- ПОКАЗ СКРИМЕРА (с вашей картинкой и звуком) ----
+        function showScrimer() {
+            if (isScrimerActive) return;
+            isScrimerActive = true;
+            
+            // ИГРАЕМ ВАШ ЗВУК
+            playScreamSound();
+            
+            // Создаём оверлей скримера
+            const overlay = document.createElement('div');
+            overlay.className = 'scrimer-overlay';
+            
+            // ВАША КАРТИНКА ДЛЯ СКРИМЕРА (замените путь)
+            const scrimerImg = document.createElement('img');
+            scrimerImg.className = 'scrimer-img';
+            scrimerImg.src = 'your_scary_image.jpg';  // <--- ЗДЕСЬ ВАША СТРАШНАЯ КАРТИНКА
+            scrimerImg.alt = 'BOO!';
+            
+            // Если ваша картинка не загрузится — покажем текст-заглушку
+            scrimerImg.onerror = () => {
+                scrimerImg.style.display = 'none';
+                const fallbackText = document.createElement('div');
+                fallbackText.style.fontSize = '80px';
+                fallbackText.style.color = 'red';
+                fallbackText.innerText = '💀 BOO! 💀';
+                overlay.insertBefore(fallbackText, scrimerText);
+            };
+            
+            const scrimerText = document.createElement('div');
+            scrimerText.className = 'scrimer-text';
+            scrimerText.innerText = '😱 ТЫ ИСПУГАЛСЯ? 😱';
+            
+            const restartButton = document.createElement('button');
+            restartButton.className = 'restart-btn';
+            restartButton.innerText = '🔁 ИГРАТЬ СНОВА 🔁';
+            
+            overlay.appendChild(scrimerImg);
+            overlay.appendChild(scrimerText);
+            overlay.appendChild(restartButton);
+            document.body.appendChild(overlay);
+            scrimerElement = overlay;
+            
+            // Кнопка рестарта
+            restartButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                resetGame();
+            });
+            
+            // Клик по оверлею (фону) — тоже перезапуск
+            overlay.addEventListener('click', (e) => {
+                if (e.target !== restartButton) {
+                    resetGame();
+                }
+            });
+            
+            // Прячем кастомную руку и показываем обычный курсор на время скримера
+            customCursor.style.display = 'none';
+            document.body.style.cursor = 'default';
+        }
+        
+        function resetGame() {
+            if (scrimerElement && scrimerElement.parentNode) {
+                scrimerElement.remove();
+                scrimerElement = null;
+            }
+            isScrimerActive = false;
+            // Останавливаем звук, если он ещё играет
+            screamAudio.pause();
+            screamAudio.currentTime = 0;
+            
+            // Возвращаем руку
+            customCursor.style.display = 'block';
+            document.body.style.cursor = 'none';
+            petCard.classList.remove('petting-effect');
+            handIcon.className = 'hand-default';
+        }
+        
+        // ----- ЛОГИКА ПОГЛАЖИВАНИЯ (триггер скримера) -----
+        let canTrigger = true; // чтобы скример сработал только один раз до рестарта
+        
+        function onPetStart() {
+            if (!canTrigger) return;
+            if (isScrimerActive) return;
+            
+            // Эффект нажатия/поглаживания
+            petCard.classList.add('petting-effect');
+            // Меняем курсор на "поглаживающую" руку
+            handIcon.className = 'hand-petting';
+            
+            // СБРАСЫВАЕМ эффект через 100 мс
+            setTimeout(() => {
+                petCard.classList.remove('petting-effect');
+            }, 120);
+            
+            setTimeout(() => {
+                if (handIcon.className === 'hand-petting') {
+                    handIcon.className = 'hand-default';
+                }
+            }, 200);
+            
+            // ВЫЗЫВАЕМ СКРИМЕР (и блокируем повторные срабатывания)
+            if (canTrigger) {
+                canTrigger = false;
+                showScrimer();
+            }
+        }
+        
+        // События для мыши и тачскрина
+        // При наведении/касании картинки — сразу скример (погладил = скример)
+        petCard.addEventListener('click', onPetStart);
+        petCard.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // предотвращаем скролл на мобильных
+            onPetStart();
+        });
+        
+        // Также можно добавить движение мыши с зажатой кнопкой — для эффекта "гладим"
+        // Но по условию: "погладить картинку" — достаточно наведения/касания.
+        // Добавим движение мыши над карточкой для более отзывчивого ощущения (необязательно)
+        petCard.addEventListener('mousemove', (e) => {
+            // Не вызываем повторно скример, если уже сработал
+            if (!canTrigger) return;
+            // Небольшой эффект "дрожания" руки при движении
+            handIcon.style.transform = `translate(-50%, -50%) scale(1.02)`;
+            setTimeout(() => {
+                if (!isScrimerActive) handIcon.style.transform = `translate(-50%, -50%)`;
+            }, 80);
+        });
+        
+        // Двигаем кастомный курсор за мышкой
+        document.addEventListener('mousemove', (e) => {
+            if (!isScrimerActive) {
+                customCursor.style.left = e.clientX + 'px';
+                customCursor.style.top = e.clientY + 'px';
+            }
+        });
+        
+        // Для мобильных устройств — скрываем стандартный курсор и показываем руку при касании
+        document.addEventListener('touchmove', (e) => {
+            if (!isScrimerActive && e.touches[0]) {
+                customCursor.style.left = e.touches[0].clientX + 'px';
+                customCursor.style.top = e.touches[0].clientY + 'px';
+                customCursor.style.display = 'block';
+            }
+        });
+        
+        // Защита от случайного вызова скримера повторно через рестарт
+        // При рестарте сбрасываем canTrigger
+        const originalReset = resetGame;
+        window.resetGame = function() {
+            originalReset();
+            canTrigger = true;
+            // также убедимся, что рука снова следует за курсором
+            customCursor.style.display = 'block';
+            document.body.style.cursor = 'none';
+            handIcon.className = 'hand-default';
+        };
+        resetGame = window.resetGame;
+        
+        // Инициализация: прячем стандартный курсор, показываем кастомный
+        document.body.style.cursor = 'none';
+        
+        // Если пользователь впервые кликнул по странице (разрешение звука для некоторых браузеров)
+        const unlockAudio = () => {
+            // Тихо проигрываем и сразу ставим на паузу, чтобы "разрешить" аудиоконтекст
+            screamAudio.volume = 0;
+            screamAudio.play().then(() => {
+                screamAudio.pause();
+                screamAudio.currentTime = 0;
+                screamAudio.volume = 0.9;
+            }).catch(e => console.log("audio unlock needed later"));
+            document.removeEventListener('click', unlockAudio);
+            document.removeEventListener('touchstart', unlockAudio);
+        };
+        document.addEventListener('click', unlockAudio);
+        document.addEventListener('touchstart', unlockAudio);
+    })();
+</script>
+</body>
+</html>
